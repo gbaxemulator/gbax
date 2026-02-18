@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake pkg-config \
+            qtbase5-dev qttools5-dev qttools5-dev-tools qtmultimedia5-dev libepoxy-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+            libsdl2-dev
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_QT=ON -DBUILD_SDL=OFF
+      - name: Build
+        run: cmake --build build
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install cmake ninja qt@5 ffmpeg
+      - name: Configure
+        env:
+          CMAKE_PREFIX_PATH: "$(brew --prefix qt@5)"
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_QT=ON -DBUILD_SDL=OFF
+      - name: Build
+        run: cmake --build build
+
+  windows-msys2:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            git
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-qt5-base
+            mingw-w64-x86_64-qt5-multimedia
+            mingw-w64-x86_64-qt5-tools
+            mingw-w64-x86_64-ffmpeg
+            mingw-w64-x86_64-libepoxy
+            mingw-w64-x86_64-ntldd
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_QT=ON -DBUILD_SDL=OFF
+      - name: Build
+        run: cmake --build build
+      - name: Package portable folder
+        run: |
+          chmod +x tools/package-gbax-windows-msys2.sh
+          ./tools/package-gbax-windows-msys2.sh build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GBAx-windows-portable
+          path: build/dist/GBAx

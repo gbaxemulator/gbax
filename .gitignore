@@ -1,0 +1,28 @@
+# Build outputs
+/build/
+/out/
+/dist/
+
+# IDE
+.vs/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Testing/
+*.VC.opendb
+*.VC.db-shm
+*.VC.db-wal
+*.sln
+*.vcxproj*
+*.filters
+*.log
+.vscode/
+.idea/
+*.user
+*.suo
+*.VC.db
+# OS
+.DS_Store
+Thumbs.db
+# Generated
+compile_commands.json
